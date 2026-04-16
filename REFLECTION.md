@@ -1,19 +1,16 @@
-# Reflection
+Reflection
+What did you build and why?
 
-## What did you build and why?
+I built an AI Recipe Maker. It’s a React web app where you throw in whatever ingredients you have, optionally pick a cuisine or dietary restriction, and it generates a full recipe instantly. I went with the LLM API option because it actually felt useful instead of just being a throwaway demo. I used Ollama instead of a cloud API mainly because it’s simple. No accounts, no API keys, no billing. I already had it set up, so I could just start building instead of dealing with setup friction.
 
-I built an AI Recipe Maker — a React web app where you type in whatever ingredients you have on hand, optionally pick a cuisine style and dietary restriction, and the app generates a full recipe in real time. I chose Option A (LLM API) because it felt like the most practical feature to build: something that actually does something useful, not just a demo. I picked Ollama over a cloud API because it meant no account setup, no billing, and no API key to manage. I already had it installed, so the barrier to actually getting a response back was low.
+What surprised you?
 
-## What surprised you?
+Honestly, the API part was way easier than I expected. Ollama is just a local HTTP endpoint. You send a POST request with JSON and it works. Nothing complicated. What wasn’t easy was handling the streaming response. It sends newline-delimited JSON, so you’re not getting one clean response. You have to read it chunk by chunk, split it up, and parse each line individually. Sometimes a chunk has half a line, sometimes multiple lines. If you try to parse the whole thing at once, it breaks. That part took way more debugging than I thought it would. The model quality also surprised me. llama3.2 is pretty small, but it still gave solid recipes. The ingredients made sense, the steps were usable, and it followed dietary restrictions pretty well. The bigger issue was formatting. When I kept the prompt vague, the output was inconsistent. Once I forced structure like naming sections and formatting expectations, it became way more reliable.
 
-A few things. First, how easy the actual API call was — Ollama exposes a simple HTTP endpoint and you just POST JSON to it. I expected something more complicated. What was harder than I expected was handling the streaming response. Ollama sends back newline-delimited JSON objects one at a time, and you have to read the `ReadableStream` chunk by chunk, split on newlines, and parse each line individually. A single chunk can contain a partial line or multiple lines at once, so I had to be careful not to just try parsing the whole chunk as one JSON object. That took more debugging than I expected.
+What did you learn?
 
-The model itself also surprised me. `llama3.2` is only a 3.2B parameter model, but the recipe quality was genuinely good — correct ingredient proportions, sensible instructions, and it respected the dietary restrictions I passed in. I did have to be specific in the prompt. My first version just said "write a recipe" and got inconsistent formatting. Once I explicitly listed the sections I wanted (dish name, description, ingredient list with quantities, numbered steps), the output became much more consistent.
+Running a local model with Ollama feels pretty normal once it’s set up. It’s basically just another API, except it’s running on your machine. I also got a much better understanding of streaming responses. Instead of waiting for everything to load, you can read it as it comes in and update the UI live. That made the app feel a lot faster and more interactive. The biggest takeaway though is how much prompt wording matters. Small changes made a noticeable difference in how clean and structured the output was. If the prompt is vague, the output is messy. If you’re specific, the model actually does a pretty good job staying consistent.
 
-## What did you learn?
+What would you do differently?
 
-Running a model locally with Ollama felt surprisingly normal once it was set up. It's just a local server you POST to — no different from calling any other API, except the model is running on your own hardware. I learned how streaming responses work in practice: instead of waiting for the entire response and then displaying it, you can use `ReadableStream` and `getReader()` to read tokens as they arrive and update the UI in real time. That made the app feel much more responsive. I also learned that prompt engineering matters a lot more than I expected for structured output — small wording changes in the system prompt had a noticeable effect on how consistently the model formatted the recipe.
-
-## What would you do differently?
-
-If I had more time, I'd improve the recipe display. Right now it renders as plain text in a `<pre>` block. The model outputs markdown (bold headers, bullet points) but the app doesn't parse it, so the asterisks show up literally. I'd add a markdown renderer like `react-markdown` so the output looks polished. I'd also add a "save recipe" feature so you can keep the ones you liked — right now they disappear when you generate a new one. And I'd experiment with a larger model like `llama3.1:8b` to see if the quality difference is worth the slower generation speed.
+The UI is definitely the weakest part right now. It just dumps everything into a <pre> block, so even though the model outputs markdown, it looks messy with all the asterisks showing. I’d fix that by actually rendering the markdown so it looks clean. I’d also add a way to save recipes. Right now if you generate a new one, the old one is just gone, which isn’t great.
